@@ -1,2 +1,2 @@
-# Event_hub_Makeathon_20
-building an Event Hub platform for an organization
+# Event Hub Makeathon_20
+Building an Event Hub platform for an organization
