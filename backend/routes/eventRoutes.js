@@ -17,7 +17,7 @@ router.get('/:id', eventController.getEventById);
 /**
  * Private Routes - Create Event (SPEAKER)
  */
-router.post('/', protect, authorize('SPEAKER', 'ADMIN'), eventController.createEvent);
+router.post('/', protect, authorize('SPEAKER', 'ORGANIZER', 'ADMIN'), eventController.createEvent);
 
 /**
  * Private Routes - Update Event (SPEAKER or ADMIN)

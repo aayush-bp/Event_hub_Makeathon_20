@@ -2,7 +2,7 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { formatDate } from '../utils/dateUtils';
 import { notificationService } from '../services/notificationService';
-import { useNotifications } from '../context/NotificationContext';
+import { useNotifications } from '../hooks/useNotifications';
 
 export const NotificationPanel = ({ isOpen, onClose }) => {
   const { notifications, loading, markAsRead, deleteNotification, markAllAsRead } =

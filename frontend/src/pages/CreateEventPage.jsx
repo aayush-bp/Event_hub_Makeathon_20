@@ -27,7 +27,7 @@ export const CreateEventPage = () => {
   const [locationInput, setLocationInput] = useState('');
 
   useEffect(() => {
-    if (user?.user?.role === 'ADMIN' || user?.role === 'ADMIN') {
+    if (user?.user?.role === 'ADMIN' || user?.role === 'ADMIN' || user?.user?.role === 'ORGANIZER' || user?.role === 'ORGANIZER') {
       fetchUsers();
     }
   }, [user]);
@@ -140,6 +140,7 @@ export const CreateEventPage = () => {
 
   const userData = user?.user || user;
   const isAdmin = userData?.role === 'ADMIN';
+  const canAssignSpeakers = userData?.role === 'ADMIN' || userData?.role === 'ORGANIZER';
 
   return (
     <>
@@ -280,8 +281,8 @@ export const CreateEventPage = () => {
                 )}
               </div>
 
-              {/* Speakers (only for admin) */}
-              {isAdmin && (
+              {/* Speakers (for admin and organizer) */}
+              {canAssignSpeakers && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Assign Speakers

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, MapPin, Shield, Bell, Save, ArrowLeft } from 'lucide-react';
+import { Mail, MapPin, Shield, Bell, Save, ArrowLeft, Clock, BellRing } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { ErrorAlert, SuccessAlert } from '../components/AlertComponents';
 import { useAuth } from '../context/AuthContext';
@@ -19,6 +19,9 @@ export const ProfilePage = () => {
   const [preferences, setPreferences] = useState({
     eventTypes: userData?.preferences?.eventTypes || [],
     notificationFrequency: userData?.preferences?.notificationFrequency || 'DAILY',
+    popupMode: userData?.preferences?.popupMode || 'on-return',
+    popupTimes: userData?.preferences?.popupTimes || ['09:00'],
+    awayThresholdMinutes: userData?.preferences?.awayThresholdMinutes || 60,
   });
 
   const eventTypeOptions = ['Tech', 'Fun', 'Business', 'Educational', 'Sports', 'Other'];
@@ -41,6 +44,9 @@ export const ProfilePage = () => {
       await authService.updatePreferences({
         eventTypes: preferences.eventTypes,
         notificationFrequency: preferences.notificationFrequency,
+        popupMode: preferences.popupMode,
+        popupTimes: preferences.popupTimes.filter(Boolean),
+        awayThresholdMinutes: preferences.awayThresholdMinutes,
       });
       
       setSuccess('Preferences updated successfully!');
@@ -232,6 +238,147 @@ export const ProfilePage = () => {
                       ))}
                     </div>
                   </div>
+
+                  {/* Notification Popup Mode */}
+                  <div>
+                    <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-4 transition-colors">
+                      <span className="flex items-center gap-2">
+                        <BellRing className="w-5 h-5 text-primary dark:text-blue-400" />
+                        Smart Notification Popup
+                      </span>
+                    </label>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 transition-colors">
+                      Control when the Event Hub shows a notification popup. It can appear when you return after being away, at specific times, or both.
+                    </p>
+                    <div className="space-y-2">
+                      {[
+                        { key: 'on-return', label: 'On Return', desc: 'Show popup when you come back after being away' },
+                        { key: 'scheduled', label: 'Scheduled Times', desc: 'Show popup at specific times of the day' },
+                        { key: 'both', label: 'Both', desc: 'Combine on-return and scheduled triggers' },
+                        { key: 'never', label: 'Never', desc: 'Disable popup notifications entirely' },
+                      ].map(({ key, label, desc }) => (
+                        <label
+                          key={key}
+                          className={`flex items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                            preferences.popupMode === key
+                              ? 'border-primary bg-blue-50 dark:bg-blue-900 dark:border-blue-500'
+                              : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="popupMode"
+                            value={key}
+                            checked={preferences.popupMode === key}
+                            onChange={(e) =>
+                              setPreferences((prev) => ({
+                                ...prev,
+                                popupMode: e.target.value,
+                              }))
+                            }
+                            className="w-4 h-4 text-primary"
+                          />
+                          <span className="ml-3 font-medium text-gray-900 dark:text-white">
+                            {label}
+                          </span>
+                          <span className="ml-auto text-sm text-gray-600 dark:text-gray-400">
+                            {desc}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Away Threshold */}
+                  {(preferences.popupMode === 'on-return' || preferences.popupMode === 'both') && (
+                    <div>
+                      <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-4 transition-colors">
+                        Away Threshold
+                      </label>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 transition-colors">
+                        How long you must be away before the popup triggers on return (in minutes).
+                      </p>
+                      <div className="flex items-center gap-4">
+                        <input
+                          type="range"
+                          min="5"
+                          max="180"
+                          step="5"
+                          value={preferences.awayThresholdMinutes}
+                          onChange={(e) =>
+                            setPreferences((prev) => ({
+                              ...prev,
+                              awayThresholdMinutes: parseInt(e.target.value),
+                            }))
+                          }
+                          className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-primary"
+                        />
+                        <span className="text-lg font-bold text-primary dark:text-blue-400 min-w-[60px] text-right">
+                          {preferences.awayThresholdMinutes}m
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Scheduled Times */}
+                  {(preferences.popupMode === 'scheduled' || preferences.popupMode === 'both') && (
+                    <div>
+                      <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-4 transition-colors">
+                        <span className="flex items-center gap-2">
+                          <Clock className="w-5 h-5 text-primary dark:text-blue-400" />
+                          Scheduled Popup Times
+                        </span>
+                      </label>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 transition-colors">
+                        Choose the times of day when you'd like to see a notification popup.
+                      </p>
+                      <div className="space-y-3">
+                        {preferences.popupTimes.map((time, idx) => (
+                          <div key={idx} className="flex items-center gap-3">
+                            <input
+                              type="time"
+                              value={time}
+                              onChange={(e) => {
+                                const newTimes = [...preferences.popupTimes];
+                                newTimes[idx] = e.target.value;
+                                setPreferences((prev) => ({
+                                  ...prev,
+                                  popupTimes: newTimes,
+                                }));
+                              }}
+                              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                            />
+                            {preferences.popupTimes.length > 1 && (
+                              <button
+                                onClick={() =>
+                                  setPreferences((prev) => ({
+                                    ...prev,
+                                    popupTimes: prev.popupTimes.filter((_, i) => i !== idx),
+                                  }))
+                                }
+                                className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        {preferences.popupTimes.length < 5 && (
+                          <button
+                            onClick={() =>
+                              setPreferences((prev) => ({
+                                ...prev,
+                                popupTimes: [...prev.popupTimes, '12:00'],
+                              }))
+                            }
+                            className="text-sm font-medium text-primary dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                          >
+                            + Add another time
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Save Button */}
                   <div className="flex gap-4 pt-6 border-t dark:border-gray-700">

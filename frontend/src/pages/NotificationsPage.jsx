@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Trash2, Check } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { LoadingSpinner } from '../components/AlertComponents';
-import { useNotifications } from '../context/NotificationContext';
+import { useNotifications } from '../hooks/useNotifications';
 import { useInterval } from '../hooks/useInterval';
 import { formatDate } from '../utils/dateUtils';
 

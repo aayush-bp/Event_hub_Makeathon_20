@@ -41,6 +41,19 @@ const userSchema = new mongoose.Schema(
         enum: ['DAILY', 'WEEKLY', 'NEVER'],
         default: 'DAILY',
       },
+      popupMode: {
+        type: String,
+        enum: ['on-return', 'scheduled', 'both', 'never'],
+        default: 'on-return',
+      },
+      popupTimes: {
+        type: [String], // e.g. ["09:00", "14:00"]
+        default: ['09:00'],
+      },
+      awayThresholdMinutes: {
+        type: Number,
+        default: 60,
+      },
     },
     isActive: {
       type: Boolean,

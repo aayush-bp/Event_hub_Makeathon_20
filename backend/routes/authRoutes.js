@@ -15,7 +15,7 @@ router.post('/login', authController.login);
  */
 router.get('/me', protect, authController.getMe);
 router.put('/preferences', protect, authController.updatePreferences);
-router.get('/users', protect, authorize('ADMIN'), authController.getAllUsers);
+router.get('/users', protect, authorize('ADMIN', 'ORGANIZER'), authController.getAllUsers);
 router.put('/users/:userId/role', protect, authorize('ADMIN'), authController.updateUserRole);
 
 module.exports = router;

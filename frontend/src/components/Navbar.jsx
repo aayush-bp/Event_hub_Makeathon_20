@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Menu, LogOut, User, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useNotifications } from '../context/NotificationContext';
+import { useNotifications } from '../hooks/useNotifications';
 import { useTheme } from '../context/ThemeContext';
 
 export const Navbar = () => {
@@ -33,6 +33,7 @@ export const Navbar = () => {
 
   const userData = user?.user || user;
   const userRole = userData?.role;
+  const canCreateEvent = userRole && userRole !== 'USER';
 
   return (
     <nav className="bg-gradient-to-r from-primary via-blue-600 to-blue-700 text-white shadow-2xl">
@@ -54,12 +55,14 @@ export const Navbar = () => {
             >
               Events
             </button>
-            <button
-              onClick={() => navigate('/create-event')}
-              className="hover:text-blue-100 transition-colors duration-300 font-medium px-3 py-1 bg-green-600 rounded-lg hover:bg-green-800"
-            >
-              Create Event
-            </button>
+            {canCreateEvent && (
+              <button
+                onClick={() => navigate('/create-event')}
+                className="hover:text-blue-100 transition-colors duration-300 font-medium px-3 py-1 bg-green-600 rounded-lg hover:bg-green-800"
+              >
+                Create Event
+              </button>
+            )}
             {(userRole === 'ADMIN' || userRole === 'ORGANIZER' || userRole === 'SPEAKER') && (
               <button
                 onClick={() => navigate('/admin')}
@@ -148,15 +151,17 @@ export const Navbar = () => {
             >
               Events
             </button>
-            <button
-              onClick={() => {
-                navigate('/create-event');
-                setIsMenuOpen(false);
-              }}
-              className="block w-full text-left px-4 py-2 hover:bg-green-800 bg-green-700 font-medium rounded mb-2"
-            >
-              Create Event
-            </button>
+            {canCreateEvent && (
+              <button
+                onClick={() => {
+                  navigate('/create-event');
+                  setIsMenuOpen(false);
+                }}
+                className="block w-full text-left px-4 py-2 hover:bg-green-800 bg-green-700 font-medium rounded mb-2"
+              >
+                Create Event
+              </button>
+            )}
             {(userRole === 'ADMIN' || userRole === 'ORGANIZER' || userRole === 'SPEAKER') && (
               <button
                 onClick={() => {

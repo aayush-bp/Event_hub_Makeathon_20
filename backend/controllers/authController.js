@@ -78,12 +78,14 @@ exports.getMe = async (req, res, next) => {
  */
 exports.updatePreferences = async (req, res, next) => {
   try {
-    const { eventTypes, notificationFrequency } = req.body;
+    const { eventTypes, notificationFrequency, popupMode, popupTimes, awayThresholdMinutes } = req.body;
 
-    const user = await authService.updatePreferences(req.user._id, {
-      eventTypes,
-      notificationFrequency,
-    });
+    const prefs = { eventTypes, notificationFrequency };
+    if (popupMode !== undefined) prefs.popupMode = popupMode;
+    if (popupTimes !== undefined) prefs.popupTimes = popupTimes;
+    if (awayThresholdMinutes !== undefined) prefs.awayThresholdMinutes = awayThresholdMinutes;
+
+    const user = await authService.updatePreferences(req.user._id, prefs);
 
     sendSuccess(res, 200, 'Preferences updated successfully', user);
   } catch (err) {

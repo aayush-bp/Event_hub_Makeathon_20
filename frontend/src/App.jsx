@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { NotificationProvider, useNotifications } from './context/NotificationContext';
+import { NotificationProvider } from './context/NotificationContext';
+import { useNotifications } from './hooks/useNotifications';
 import { ThemeProvider } from './context/ThemeContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { NotificationPopup } from './components/NotificationPopup';
 import { useInterval } from './hooks/useInterval';
 
 // Pages
@@ -30,7 +32,9 @@ const AppRouter = () => {
   }, 30000);
 
   return (
-    <Routes>
+    <>
+      {isAuthenticated && <NotificationPopup />}
+      <Routes>
       <Route
         path="/login"
         element={isAuthenticated ? <Navigate to="/dashboard" /> : <LoginPage />}
@@ -103,6 +107,7 @@ const AppRouter = () => {
       />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
+    </>
   );
 };
 
