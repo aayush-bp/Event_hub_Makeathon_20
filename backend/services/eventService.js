@@ -78,7 +78,7 @@ class EventService {
    */
   async getEventById(eventId) {
     try {
-      const event = await Event.findById(eventId);
+      const event = await Event.findById(eventId).populate('organizerId', 'name email');
 
       if (!event) {
         throw new Error('Event not found');

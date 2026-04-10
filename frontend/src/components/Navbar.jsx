@@ -1,13 +1,15 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Menu, LogOut, User } from 'lucide-react';
+import { Bell, Menu, LogOut, User, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useTheme } from '../context/ThemeContext';
 
 export const Navbar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { unreadCount } = useNotifications();
+  const { isDark, toggleDarkMode } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = React.useState(false);
   const profileMenuRef = React.useRef(null);
@@ -87,6 +89,13 @@ export const Navbar = () => {
                 )}
               </button>
             </div>
+            <button
+              onClick={toggleDarkMode}
+              className="hover:text-blue-100 transition-colors duration-300 p-2 rounded-lg hover:bg-blue-600"
+              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {isDark ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
+            </button>
             <div className="relative">
               <button 
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
@@ -97,19 +106,19 @@ export const Navbar = () => {
               </button>
               <div 
                 ref={profileMenuRef}
-                className={`absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-lg shadow-2xl z-50 transition-all duration-200 ${
+                className={`absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg shadow-2xl z-50 transition-all duration-200 dark:border dark:border-gray-700 ${
                   isProfileMenuOpen ? 'block opacity-100 scale-100' : 'hidden opacity-0 scale-95'
                 }`}
               >
                 <button
                   onClick={() => navigate('/profile')}
-                  className="block w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors duration-200 font-medium"
+                  className="block w-full text-left px-4 py-2 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-200 font-medium"
                 >
                   Profile
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 hover:bg-red-50 transition-colors duration-200 flex items-center gap-2 font-medium text-red-600"
+                  className="block w-full text-left px-4 py-2 hover:bg-red-50 dark:hover:bg-gray-700 transition-colors duration-200 flex items-center gap-2 font-medium text-red-600 dark:text-red-400"
                 >
                   <LogOut className="w-4 h-4" />
                   Logout

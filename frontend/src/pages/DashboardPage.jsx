@@ -75,18 +75,18 @@ export const DashboardPage = () => {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative overflow-hidden transition-colors duration-300">
         {/* Animated background elements */}
-        <div className="absolute top-0 left-0 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute top-0 right-0 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-0 left-0 w-72 h-72 bg-blue-200 dark:bg-blue-900 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute top-0 right-0 w-72 h-72 bg-purple-200 dark:bg-purple-900 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-pink-200 dark:bg-pink-900 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
         
         <div className="max-w-7xl mx-auto px-4 py-8 relative z-10">
           <div className="mb-8">
-            <h3 className="text-5xl font-bold bg-gradient-to-r from-primary via-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h3 className="text-5xl font-bold bg-gradient-to-r from-primary via-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:via-purple-400 dark:to-pink-400">
               Welcome back, {(user?.user?.name).split(" ")[0]}!
             </h3>
-            <p className="text-gray-600 mt-2 text-lg font-medium">
+            <p className="text-gray-600 dark:text-gray-300 mt-2 text-lg font-medium transition-colors duration-300">
               Explore and discover amazing events
             </p>
           </div>
@@ -97,37 +97,37 @@ export const DashboardPage = () => {
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-white bg-opacity-80 backdrop-blur-md rounded-xl shadow-lg hover:shadow-2xl p-6 transition-all duration-300 hover:scale-105 transform border border-white border-opacity-20">
+            <div className="bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-50 backdrop-blur-md rounded-xl shadow-lg hover:shadow-2xl p-6 transition-all duration-300 hover:scale-105 transform border border-white dark:border-gray-700 border-opacity-20">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 font-medium">Registered Events</p>
+                  <p className="text-gray-600 dark:text-gray-400 font-medium">Registered Events</p>
                   <p className="text-4xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                     {registeredEvents.length}
                   </p>
                 </div>
-                <Calendar className="w-16 h-16 text-primary opacity-15" />
+                <Calendar className="w-16 h-16 text-primary dark:text-blue-400 opacity-15" />
               </div>
             </div>
-            <div className="bg-white bg-opacity-80 backdrop-blur-md rounded-xl shadow-lg hover:shadow-2xl p-6 transition-all duration-300 hover:scale-105 transform border border-white border-opacity-20">
+            <div className="bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-50 backdrop-blur-md rounded-xl shadow-lg hover:shadow-2xl p-6 transition-all duration-300 hover:scale-105 transform border border-white dark:border-gray-700 border-opacity-20">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 font-medium">Total Events</p>
+                  <p className="text-gray-600 dark:text-gray-400 font-medium">Total Events</p>
                   <p className="text-4xl font-bold bg-gradient-to-r from-accent to-green-600 bg-clip-text text-transparent">
                     {events.length}
                   </p>
                 </div>
-                <TrendingUp className="w-16 h-16 text-accent opacity-15" />
+                <TrendingUp className="w-16 h-16 text-accent dark:text-green-400 opacity-15" />
               </div>
             </div>
-            <div className="bg-white bg-opacity-80 backdrop-blur-md rounded-xl shadow-lg hover:shadow-2xl p-6 transition-all duration-300 hover:scale-105 transform border border-white border-opacity-20">
+            <div className="bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-50 backdrop-blur-md rounded-xl shadow-lg hover:shadow-2xl p-6 transition-all duration-300 hover:scale-105 transform border border-white dark:border-gray-700 border-opacity-20">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 font-medium">Recommended</p>
+                  <p className="text-gray-600 dark:text-gray-400 font-medium">Recommended</p>
                   <p className="text-4xl font-bold bg-gradient-to-r from-warning to-orange-600 bg-clip-text text-transparent">
                     {recommendedEvents.length}
                   </p>
                 </div>
-                <Users className="w-16 h-16 text-warning opacity-15" />
+                <Users className="w-16 h-16 text-warning dark:text-yellow-400 opacity-15" />
               </div>
             </div>
           </div>
@@ -135,7 +135,7 @@ export const DashboardPage = () => {
           {/* My Events */}
           {registeredEvents.length > 0 && (
             <div className="mb-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 transition-colors duration-300">
                 My Registered Events
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

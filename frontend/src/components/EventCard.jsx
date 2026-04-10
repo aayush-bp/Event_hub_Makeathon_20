@@ -11,15 +11,15 @@ export const EventCard = ({ event, isRegistered, onRegister, onUnregister }) => 
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 cursor-pointer">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-lg hover:shadow-lg dark:hover:shadow-xl transition-shadow p-6 cursor-pointer dark:border dark:border-gray-700">
       <div onClick={handleCardClick} className="mb-4">
-        <h3 className="text-xl font-bold text-gray-800 mb-2">{event.title}</h3>
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+        <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">{event.title}</h3>
+        <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-2">
           {event.description}
         </p>
       </div>
 
-      <div className="space-y-2 text-gray-700 text-sm mb-4">
+      <div className="space-y-2 text-gray-700 dark:text-gray-300 text-sm mb-4">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-primary" />
           <span>{formatDate(event.dateTime)}</span>
