@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const { generateToken } = require('../utils/jwt');
+const { sendWelcomeEmail } = require('../utils/mailer');
 
 /**
  * Service for authentication operations
@@ -29,6 +30,12 @@ class AuthService {
 
       // Generate token
       const token = generateToken(user._id);
+
+      // Send welcome email (non-blocking)
+      console.log('[AuthService] About to send welcome email to:', user.email);
+      sendWelcomeEmail(user.email, user.name).catch(err => 
+        console.error('[AuthService] Welcome email promise rejected:', err.message)
+      );
 
       return {
         user: user.toJSON(),

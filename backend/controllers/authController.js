@@ -8,6 +8,7 @@ const { sendSuccess, sendError } = require('../utils/response');
  */
 exports.register = async (req, res, next) => {
   try {
+    console.log('[AuthController] Register endpoint hit, body:', JSON.stringify(req.body));
     const { name, email, password, role, dcLocation } = req.body;
 
     // Validation

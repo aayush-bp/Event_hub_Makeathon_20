@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { X, Sparkles } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { ErrorAlert, SuccessAlert } from '../components/AlertComponents';
 import { eventService } from '../services/eventService';
 import { authService } from '../services/authService';
+import { aiService } from '../services/aiService';
 import { useAuth } from '../context/AuthContext';
 
 export const CreateEventPage = () => {
@@ -25,6 +26,7 @@ export const CreateEventPage = () => {
     maxParticipants: 50,
   });
   const [locationInput, setLocationInput] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     if (user?.user?.role === 'ADMIN' || user?.role === 'ADMIN' || user?.user?.role === 'ORGANIZER' || user?.role === 'ORGANIZER') {
@@ -82,6 +84,30 @@ export const CreateEventPage = () => {
       ...prev,
       speakerIds: prev.speakerIds.filter((id) => id !== speakerId),
     }));
+  };
+
+  const handleAIGenerate = async () => {
+    if (!formData.title.trim()) {
+      setError('Please enter an event title first');
+      return;
+    }
+    try {
+      setAiLoading(true);
+      setError('');
+      const details = await aiService.generateEventDetails(formData.title);
+      setFormData((prev) => ({
+        ...prev,
+        description: details.description || prev.description,
+        type: details.type || prev.type,
+        duration: details.duration || prev.duration,
+        maxParticipants: details.maxParticipants || prev.maxParticipants,
+        locations: details.locations?.length ? details.locations : prev.locations,
+      }));
+    } catch (err) {
+      setError('Failed to generate event details with AI');
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -170,6 +196,15 @@ export const CreateEventPage = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary"
                   placeholder="Enter event title"
                 />
+                <button
+                  type="button"
+                  onClick={handleAIGenerate}
+                  disabled={aiLoading}
+                  className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-purple-600 hover:to-indigo-700 disabled:opacity-50 transition-all"
+                >
+                  <Sparkles size={16} className={aiLoading ? 'animate-spin' : ''} />
+                  {aiLoading ? 'Generating...' : 'Auto-fill with AI'}
+                </button>
               </div>
 
               <div>

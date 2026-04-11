@@ -6,6 +6,7 @@ const authRoutes = require('./routes/authRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 
 // Import middleware
 const errorHandler = require('./middlewares/errorHandler');
@@ -49,6 +50,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/recommendations', recommendationRoutes);
+app.use('/api/ai', aiRoutes);
 
 // ============================================
 // ERROR HANDLING

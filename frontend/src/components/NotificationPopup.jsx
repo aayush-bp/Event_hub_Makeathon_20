@@ -8,6 +8,31 @@ const LAST_ACTIVE_KEY = 'eventhub_last_active';
 const LAST_POPUP_KEY = 'eventhub_last_popup';
 const SCHEDULED_FIRED_KEY = 'eventhub_scheduled_fired';
 
+// Request browser notification permission on load
+const requestNotificationPermission = () => {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+};
+
+const sendBrowserNotification = (title, body, onClick) => {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+  const notif = new Notification(title, {
+    body,
+    icon: '/favicon.ico',
+    badge: '/favicon.ico',
+    tag: 'eventhub-notification',
+    renotify: true,
+  });
+
+  notif.onclick = () => {
+    window.focus();
+    if (onClick) onClick();
+    notif.close();
+  };
+};
+
 export const NotificationPopup = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
@@ -21,6 +46,13 @@ export const NotificationPopup = () => {
   const popupMode = prefs.popupMode || 'on-return';
   const popupTimes = prefs.popupTimes || ['09:00'];
   const awayThreshold = (prefs.awayThresholdMinutes || 60) * 60 * 1000;
+
+  // Request browser notification permission on mount
+  useEffect(() => {
+    if (isAuthenticated) {
+      requestNotificationPermission();
+    }
+  }, [isAuthenticated]);
 
   // Track last active time — update every 30s while page is visible
   useEffect(() => {
@@ -119,8 +151,18 @@ export const NotificationPopup = () => {
       setReason(triggerReason);
       setVisible(true);
       localStorage.setItem(LAST_POPUP_KEY, Date.now().toString());
+
+      // Send browser notification
+      const unread = (notifications || []).filter((n) => !n.isRead && !n.read);
+      if (unread.length > 0) {
+        const title = triggerReason === 'return'
+          ? `Welcome back! You have ${unread.length} notification${unread.length > 1 ? 's' : ''}`
+          : `${unread.length} new notification${unread.length > 1 ? 's' : ''}`;
+        const body = unread.slice(0, 3).map((n) => n.title || n.message).join('\n');
+        sendBrowserNotification(title, body, () => navigate('/notifications'));
+      }
     },
-    []
+    [notifications, navigate]
   );
 
   const handleDismiss = () => {
