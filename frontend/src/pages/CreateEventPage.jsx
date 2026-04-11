@@ -109,11 +109,6 @@ export const CreateEventPage = () => {
       return;
     }
 
-    if (formData.speakerIds.length === 0) {
-      setError('At least one speaker is required');
-      return;
-    }
-
     try {
       setLoading(true);
       const eventPayload = {
