@@ -1,4 +1,5 @@
 const eventService = require('../services/eventService');
+const aiService = require('../services/aiService');
 const { sendSuccess, sendError } = require('../utils/response');
 
 /**
@@ -211,6 +212,83 @@ exports.getSpeakerPendingEvents = async (req, res, next) => {
   try {
     const events = await eventService.getSpeakerPendingEvents(req.user._id);
     sendSuccess(res, 200, 'Pending events retrieved', events);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * @route   POST /api/events/:id/transcribe-audio
+ * @desc    Upload audio, transcribe it, summarize, and save to event
+ * @access  Private (ORGANIZER/ADMIN)
+ */
+exports.transcribeAudio = async (req, res, next) => {
+  try {
+    const event = await eventService.getEventById(req.params.id);
+
+    // Only organizer, speaker, or admin can add transcription
+    const isOrganizer = event.organizerId._id?.toString() === req.user._id.toString() || event.organizerId.toString() === req.user._id.toString();
+    const isSpeaker = (event.speakerIds || []).some(s => (s._id || s).toString() === req.user._id.toString());
+    if (!isOrganizer && !isSpeaker && req.user.role !== 'ADMIN') {
+      return sendError(res, 403, 'Only the organizer, speaker, or admin can add transcriptions');
+    }
+
+    if (!req.file) {
+      return sendError(res, 400, 'Please upload an audio file');
+    }
+
+    const mimeType = req.file.mimetype;
+    const audioBuffer = req.file.buffer;
+
+    // Transcribe audio using Gemini
+    const transcription = await aiService.transcribeAudio(audioBuffer, mimeType);
+
+    // Summarize the transcription
+    const summary = await aiService.summarizeTranscription(transcription, event.title);
+
+    // Update event
+    const updatedEvent = await eventService.updateEvent(req.params.id, {
+      transcription,
+      summary,
+    });
+
+    sendSuccess(res, 200, 'Audio transcribed and summarized successfully', updatedEvent);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * @route   POST /api/events/:id/transcription-text
+ * @desc    Submit transcription text, summarize, and save to event
+ * @access  Private (ORGANIZER/ADMIN)
+ */
+exports.addTranscriptionText = async (req, res, next) => {
+  try {
+    const { transcription } = req.body;
+
+    if (!transcription || !transcription.trim()) {
+      return sendError(res, 400, 'Please provide transcription text');
+    }
+
+    const event = await eventService.getEventById(req.params.id);
+
+    const isOrganizer = event.organizerId._id?.toString() === req.user._id.toString() || event.organizerId.toString() === req.user._id.toString();
+    const isSpeaker = (event.speakerIds || []).some(s => (s._id || s).toString() === req.user._id.toString());
+    if (!isOrganizer && !isSpeaker && req.user.role !== 'ADMIN') {
+      return sendError(res, 403, 'Only the organizer, speaker, or admin can add transcriptions');
+    }
+
+    // Summarize the transcription
+    const summary = await aiService.summarizeTranscription(transcription.trim(), event.title);
+
+    // Update event
+    const updatedEvent = await eventService.updateEvent(req.params.id, {
+      transcription: transcription.trim(),
+      summary,
+    });
+
+    sendSuccess(res, 200, 'Transcription added and summarized successfully', updatedEvent);
   } catch (err) {
     next(err);
   }

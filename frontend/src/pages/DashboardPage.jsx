@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Calendar, TrendingUp, Users, ChevronLeft, ChevronRight, LayoutGrid, CalendarDays } from 'lucide-react';
+import { Calendar, TrendingUp, Users, ChevronLeft, ChevronRight, LayoutGrid, CalendarDays, CheckCircle } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { EventCard } from '../components/EventCard';
 import { LoadingSpinner, ErrorAlert } from '../components/AlertComponents';
@@ -15,6 +15,7 @@ export const DashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [viewMode, setViewMode] = useState('week'); // '1day', '3day', 'week'
+  const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' | 'completed'
   const [viewStartDate, setViewStartDate] = useState(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -98,6 +99,17 @@ export const DashboardPage = () => {
       return d >= viewStartDate && d < viewEndDate;
     });
   }, [events, viewStartDate, viewEndDate]);
+
+  const completedEvents = useMemo(() => {
+    return events.filter((e) => {
+      const d = new Date(e.dateTime);
+      return d < new Date();
+    }).sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
+  }, [events]);
+
+  const upcomingEvents = useMemo(() => {
+    return events.filter((e) => new Date(e.dateTime) >= new Date());
+  }, [events]);
 
   const groupedByDay = useMemo(() => {
     const groups = {};
@@ -236,11 +248,47 @@ export const DashboardPage = () => {
             </div>
           )}
 
+          {/* Tabs: Upcoming / Completed */}
+          <div className="flex gap-2 mb-6">
+            <button
+              onClick={() => setActiveTab('upcoming')}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all ${
+                activeTab === 'upcoming'
+                  ? 'bg-primary text-white shadow-lg shadow-blue-500/25'
+                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
+              }`}
+            >
+              <CalendarDays className="w-4 h-4" />
+              All Upcoming Events
+            </button>
+            <button
+              onClick={() => setActiveTab('completed')}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all ${
+                activeTab === 'completed'
+                  ? 'bg-accent text-white shadow-lg shadow-green-500/25'
+                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
+              }`}
+            >
+              <CheckCircle className="w-4 h-4" />
+              Completed Events
+              {completedEvents.length > 0 && (
+                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                  activeTab === 'completed'
+                    ? 'bg-white/20 text-white'
+                    : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
+                }`}>
+                  {completedEvents.length}
+                </span>
+              )}
+            </button>
+          </div>
+
           {/* All Events — Calendar / Grid toggle */}
+          {activeTab === 'upcoming' && (
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-300">
-                All Upcoming Events
+                All Upcoming Events ({upcomingEvents.length})
               </h2>
               <div className="flex items-center gap-2">
                 <button
@@ -381,6 +429,36 @@ export const DashboardPage = () => {
               </div>
             )}
           </div>
+          )}
+
+          {/* Completed Events Tab */}
+          {activeTab === 'completed' && (
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 transition-colors duration-300">
+                Completed Events ({completedEvents.length})
+              </h2>
+              {completedEvents.length === 0 ? (
+                <div className="text-center py-16">
+                  <CheckCircle className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">No completed events yet</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Past events will appear here</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {completedEvents.map((event) => (
+                    <EventCard
+                      key={event._id}
+                      event={event}
+                      isRegistered={isEventRegistered(event._id)}
+                      onRegister={handleRegister}
+                      onUnregister={handleUnregister}
+                      hideActions
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
       <style>{`

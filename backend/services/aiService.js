@@ -45,3 +45,42 @@ Return ONLY the JSON object, no markdown, no code fences, no explanation.`;
 
   return parsed;
 };
+
+/**
+ * Transcribe audio using Gemini AI (supports audio files)
+ */
+exports.transcribeAudio = async (audioBuffer, mimeType) => {
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+  const audioPart = {
+    inlineData: {
+      data: audioBuffer.toString('base64'),
+      mimeType: mimeType,
+    },
+  };
+
+  const result = await model.generateContent([
+    'Transcribe the following audio accurately. Return ONLY the transcription text, no headers, no formatting, no explanations.',
+    audioPart,
+  ]);
+
+  return result.response.text().trim();
+};
+
+/**
+ * Summarize transcription text using Gemini AI
+ */
+exports.summarizeTranscription = async (transcription, eventTitle) => {
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+  const prompt = `Summarize the following event transcription concisely. 
+Event: "${eventTitle}"
+
+Transcription:
+${transcription}
+
+Provide a clear, well-structured summary covering the key points discussed, decisions made, and any action items. Keep it under 300 words.`;
+
+  const result = await model.generateContent(prompt);
+  return result.response.text().trim();
+};

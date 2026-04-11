@@ -59,4 +59,19 @@ export const eventService = {
     const response = await api.get('/events/speaker/pending/assignments');
     return response.data.data || [];
   },
+
+  uploadAudioTranscription: async (eventId, audioFile) => {
+    const formData = new FormData();
+    formData.append('audio', audioFile);
+    const response = await api.post(`/events/${eventId}/transcribe-audio`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000, // 2 min timeout for large audio
+    });
+    return response.data;
+  },
+
+  addTranscriptionText: async (eventId, transcription) => {
+    const response = await api.post(`/events/${eventId}/transcription-text`, { transcription });
+    return response.data;
+  },
 };

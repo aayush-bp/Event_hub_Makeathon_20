@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar, MapPin, Users, Clock } from 'lucide-react';
 import { formatDate, getTimeUntilEvent } from '../utils/dateUtils';
 
-export const EventCard = ({ event, isRegistered, onRegister, onUnregister }) => {
+export const EventCard = ({ event, isRegistered, onRegister, onUnregister, hideActions }) => {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
@@ -44,6 +44,7 @@ export const EventCard = ({ event, isRegistered, onRegister, onUnregister }) => 
         )}
       </div>
 
+      {!hideActions && (
       <div className="flex gap-2">
         {isRegistered ? (
           <button
@@ -67,6 +68,7 @@ export const EventCard = ({ event, isRegistered, onRegister, onUnregister }) => 
           </button>
         )}
       </div>
+      )}
     </div>
   );
 };

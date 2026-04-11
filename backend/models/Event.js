@@ -65,6 +65,18 @@ const eventSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    audioUrl: {
+      type: String,
+      required: false,
+    },
+    transcription: {
+      type: String,
+      required: false,
+    },
+    summary: {
+      type: String,
+      required: false,
+    },
   },
   {
     timestamps: true,

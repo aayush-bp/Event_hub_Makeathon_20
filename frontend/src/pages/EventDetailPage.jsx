@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Users, Clock, ArrowLeft, User } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, ArrowLeft, User, Upload, FileText, Sparkles, Mic } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { LoadingSpinner, ErrorAlert, SuccessAlert } from '../components/AlertComponents';
 import { eventService } from '../services/eventService';
@@ -17,6 +17,10 @@ export const EventDetailPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isRegistered, setIsRegistered] = useState(false);
+  const [transcriptionMode, setTranscriptionMode] = useState(null); // 'audio' | 'text'
+  const [transcriptionText, setTranscriptionText] = useState('');
+  const [aiProcessing, setAiProcessing] = useState(false);
+  const audioInputRef = useRef(null);
 
   useEffect(() => {
     fetchEventDetails();
@@ -72,6 +76,57 @@ export const EventDetailPage = () => {
       );
     } finally {
       setRegistering(false);
+    }
+  };
+
+  const isPastEvent = event && new Date(event.dateTime) < new Date();
+  const userData = user?.user || user;
+  const isOrganizer = event && userData && (
+    event.organizerId?._id === userData._id || event.organizerId === userData._id
+  );
+  const isAdmin = userData?.role === 'ADMIN';
+  const isSpeaker = event && userData && (
+    (event.speakerIds || []).some(s => (s._id || s) === userData._id)
+  );
+  const canAddTranscription = isPastEvent && (isOrganizer || isAdmin || isSpeaker);
+
+  const handleAudioUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setAiProcessing(true);
+      setError('');
+      await eventService.uploadAudioTranscription(eventId, file);
+      setSuccess('Audio transcribed and summarized successfully!');
+      setTranscriptionMode(null);
+      await fetchEventDetails();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to transcribe audio');
+    } finally {
+      setAiProcessing(false);
+      if (audioInputRef.current) audioInputRef.current.value = '';
+    }
+  };
+
+  const handleTextTranscription = async () => {
+    if (!transcriptionText.trim()) {
+      setError('Please enter transcription text');
+      return;
+    }
+
+    try {
+      setAiProcessing(true);
+      setError('');
+      await eventService.addTranscriptionText(eventId, transcriptionText);
+      setSuccess('Transcription added and summarized successfully!');
+      setTranscriptionText('');
+      setTranscriptionMode(null);
+      await fetchEventDetails();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to process transcription');
+    } finally {
+      setAiProcessing(false);
     }
   };
 
@@ -227,7 +282,7 @@ export const EventDetailPage = () => {
                   </span>
                 </div>
 
-                {isRegistered ? (
+                {!isPastEvent && (isRegistered ? (
                   <button
                     onClick={handleUnregister}
                     disabled={registering}
@@ -243,10 +298,141 @@ export const EventDetailPage = () => {
                   >
                     {registering ? 'Processing...' : 'Register for Event'}
                   </button>
-                )}
+                ))}
               </div>
             </div>
           </div>
+
+          {/* Transcription & Summary Section */}
+          {isPastEvent && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-xl p-8 dark:border dark:border-gray-700 mt-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                <FileText className="w-6 h-6 text-primary" />
+                Event Transcription & Summary
+              </h2>
+
+              {/* Show existing summary */}
+              {event.summary && (
+                <div className="mb-6 p-4 bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/30 dark:to-blue-900/30 rounded-xl border border-indigo-100 dark:border-indigo-800">
+                  <h3 className="text-lg font-semibold text-indigo-900 dark:text-indigo-200 mb-2 flex items-center gap-2">
+                    <Sparkles className="w-5 h-5" />
+                    AI Summary
+                  </h3>
+                  <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                    {event.summary}
+                  </p>
+                </div>
+              )}
+
+              {/* Show existing transcription */}
+              {event.transcription && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                    <Mic className="w-5 h-5 text-primary" />
+                    Full Transcription
+                  </h3>
+                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 max-h-64 overflow-y-auto">
+                    <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-sm leading-relaxed">
+                      {event.transcription}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Add transcription controls (organizer/admin only) */}
+              {canAddTranscription && (
+                <div>
+                  {!transcriptionMode && !aiProcessing && (
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        onClick={() => setTranscriptionMode('audio')}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-sm font-medium rounded-xl hover:from-purple-600 hover:to-indigo-700 transition-all shadow-md"
+                      >
+                        <Upload className="w-4 h-4" />
+                        Upload Audio
+                      </button>
+                      <button
+                        onClick={() => setTranscriptionMode('text')}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-600 text-white text-sm font-medium rounded-xl hover:from-blue-600 hover:to-cyan-700 transition-all shadow-md"
+                      >
+                        <FileText className="w-4 h-4" />
+                        Paste Transcription
+                      </button>
+                    </div>
+                  )}
+
+                  {aiProcessing && (
+                    <div className="flex items-center gap-3 p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl border border-indigo-200 dark:border-indigo-800">
+                      <svg className="animate-spin h-5 w-5 text-indigo-600" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      <span className="text-indigo-700 dark:text-indigo-300 font-medium">
+                        AI is processing... Transcribing and summarizing your content
+                      </span>
+                    </div>
+                  )}
+
+                  {transcriptionMode === 'audio' && !aiProcessing && (
+                    <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                        Upload an audio file (mp3, wav, m4a, webm, ogg, flac — max 25MB). AI will transcribe and summarize it.
+                      </p>
+                      <input
+                        ref={audioInputRef}
+                        type="file"
+                        accept="audio/*"
+                        onChange={handleAudioUpload}
+                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-900 dark:file:text-indigo-300"
+                      />
+                      <button
+                        onClick={() => setTranscriptionMode(null)}
+                        className="mt-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+
+                  {transcriptionMode === 'text' && !aiProcessing && (
+                    <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                        Paste the event transcription below. AI will generate a summary automatically.
+                      </p>
+                      <textarea
+                        value={transcriptionText}
+                        onChange={(e) => setTranscriptionText(e.target.value)}
+                        className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-sm h-40 resize-y"
+                        placeholder="Paste event transcription here..."
+                      />
+                      <div className="flex gap-2 mt-3">
+                        <button
+                          onClick={handleTextTranscription}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all"
+                        >
+                          <Sparkles className="w-4 h-4" />
+                          Summarize & Save
+                        </button>
+                        <button
+                          onClick={() => { setTranscriptionMode(null); setTranscriptionText(''); }}
+                          className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* No transcription yet message */}
+              {!event.transcription && !event.summary && !canAddTranscription && (
+                <p className="text-gray-500 dark:text-gray-400 italic">
+                  No transcription available for this event yet.
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </>
